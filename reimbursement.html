@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reimbursement Form</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      label {
+        font-weight: bold;
+        margin-bottom: 10px;
+        display: block;
+      }
+      input[type="text"],
+      textarea,
+      select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 16px;
+      }
+      input[type="file"] {
+        margin-bottom: 20px;
+      }
+      input[type="submit"] {
+        background-color: #4caf50;
+        color: white;
+        padding: 15px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+      }
+      input[type="submit"]:hover {
+        background-color: #45a049;
+      }
+      .proof-img {
+        margin-bottom: 20px;
+      }
+      .proof-img img {
+        max-width: 200px;
+        height: auto;
+        display: block;
+        margin: 0 auto;
+      }
+      .readonly {
+        color: #888; /* Gray color */
+        background-color: #f4f4f4; /* Light gray background */
+        cursor: not-allowed; /* Disable cursor */
+      }
+      /* Full screen overlay */
+      .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+      }
+      .overlay-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Reimbursement Form</h2>
+      <form id="reimbursement-form" method="post" enctype="multipart/form-data">
+        <label for="names">Names (separated by comma):</label>
+        <input type="text" id="names" name="names" required />
+
+        <label for="email">Email:</label>
+        <input type="text" id="email" name="email" required />
+
+        <label for="expense">Expense Description:</label>
+        <textarea id="expense" name="expense" rows="4" required></textarea>
+
+        <label for="amount">Amount (INR):</label>
+        <input type="text" id="amount" name="amount" required />
+
+        <label for="amount-in-pounds">Amount (Pounds):</label>
+        <input
+          type="text"
+          id="amount-in-pounds"
+          name="amount-in-pounds"
+          readonly
+          class="readonly"
+        />
+
+        <label for="proof">Proof Image:</label>
+        <input type="file" id="proof" name="proof" accept="image/*" />
+
+        <div class="proof-img">
+          <img
+            id="proof-preview"
+            src="#"
+            alt="Proof Image Preview"
+            style="display: none"
+          />
+        </div>
+
+        <label for="approver">Approver ID:</label>
+        <input
+          type="text"
+          id="approver"
+          name="approver"
+          value="krishnapriya.sri125@gmail.com"
+          readonly
+          class="readonly"
+        />
+
+        <input type="submit" value="Submit" />
+      </form>
+    </div>
+
+    <!-- Full screen overlay for success message -->
+    <div class="overlay" id="overlay">
+      <div class="overlay-content">
+        <h2>Submission Successful!</h2>
+        <div id="submitted-values"></div>
+        <button onclick="closeOverlay()">Close</button>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById("proof").addEventListener("change", function () {
+        var reader = new FileReader()
+        reader.onload = function (e) {
+          document.getElementById("proof-preview").style.display = "block"
+          document
+            .getElementById("proof-preview")
+            .setAttribute("src", e.target.result)
+        }
+        reader.readAsDataURL(this.files[0])
+      })
+
+      document.getElementById("amount").addEventListener("input", function () {
+        var amountInINR = parseFloat(this.value)
+        if (!isNaN(amountInINR)) {
+          // Conversion rate from INR to pounds
+          var conversionRate = 1 / 104.92
+          var amountInPounds = amountInINR * conversionRate
+          document.getElementById("amount-in-pounds").value =
+            amountInPounds.toFixed(2)
+        } else {
+          document.getElementById("amount-in-pounds").value = ""
+        }
+      })
+
+      document
+        .getElementById("reimbursement-form")
+        .addEventListener("submit", function (event) {
+          event.preventDefault() // Prevent default form submission
+          showSubmissionDetails()
+        })
+
+      function showSubmissionDetails() {
+        var names = document.getElementById("names").value
+        var email = document.getElementById("email").value
+        var expense = document.getElementById("expense").value
+        var amount = document.getElementById("amount").value
+        var amountInPounds = document.getElementById("amount-in-pounds").value
+        var proofPreview = document
+          .getElementById("proof-preview")
+          .getAttribute("src")
+        var approver = document.getElementById("approver").value
+
+        var submissionDetails = `
+      <p><strong>Names:</strong> ${names}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Expense Description:</strong> ${expense}</p>
+      <p><strong>Amount (INR):</strong> ${amount}</p>
+      <p><strong>Amount (Pounds):</strong> ${amountInPounds}</p>
+      <p><strong>Proof Image:</strong></p>
+      <img src="${proofPreview}" alt="Proof Image" style="max-width: 200px; height: auto;">
+      <p><strong>Approver ID:</strong> ${approver}</p>
+    `
+
+        document.getElementById("submitted-values").innerHTML =
+          submissionDetails
+        document.getElementById("overlay").style.display = "block"
+      }
+
+      function closeOverlay() {
+        document.getElementById("overlay").style.display = "none"
+        // Reset form if needed
+        document.getElementById("reimbursement-form").reset()
+      }
+    </script>
+  </body>
+</html>
